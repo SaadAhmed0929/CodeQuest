@@ -25,6 +25,7 @@ const Level = () => {
     const [showConfetti, setShowConfetti] = useState(false);
     const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
     const [antigravity, setAntigravity] = useState(false);
+    const [wwe, setWwe] = useState(false);
     const hasFailed = useRef(false);
 
     useEffect(() => {
@@ -85,12 +86,19 @@ const Level = () => {
 
 
     const handleRunCode = async () => {
-        // 🚀 EASTER EGG
+        // 🚀 EASTER EGG — antigravity
         if (code.trim().includes('import antigravity')) {
             setAntigravity(true);
             setShowConfetti(true);
             awardLevel(50, 20);
             setTimeout(() => setShowConfetti(false), 6000);
+            return;
+        }
+
+        // 🏆 EASTER EGG — WWE
+        if (code.trim().includes('import wwe')) {
+            setWwe(true);
+            awardLevel(75, 30);
             return;
         }
 
@@ -245,7 +253,256 @@ const Level = () => {
                 )}
             </AnimatePresence>
 
+            {/* 🏆 WWE EASTER EGG */}
+            <AnimatePresence>
+                {wwe && (
+                    <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+                        style={{ position:'fixed', inset:0, zIndex:999, background:'#030303',
+                            overflowY:'auto', display:'flex', flexDirection:'column', alignItems:'center' }}>
+
+                        {/* ── Gold pyrotechnic sparks ── */}
+                        {Array.from({ length: 28 }).map((_, i) => {
+                            const left = `${Math.random() * 100}%`;
+                            const delay = Math.random() * 2;
+                            const dur = 2.5 + Math.random() * 2;
+                            const size = Math.random() * 4 + 2;
+                            return (
+                                <motion.div key={`spark-${i}`}
+                                    style={{ position:'fixed', bottom: 0, left, width:`${size}px`, height:`${size}px`,
+                                        borderRadius:'50%', background: i % 3 === 0 ? '#d4a017' : i % 3 === 1 ? '#FF2D00' : '#fff',
+                                        pointerEvents:'none', zIndex:1 }}
+                                    animate={{ y:[0, -(300 + Math.random()*400)], opacity:[0, 1, 0], scale:[0, 1.5, 0] }}
+                                    transition={{ duration: dur, repeat: Infinity, delay, ease:'easeOut' }} />
+                            );
+                        })}
+
+                        {/* ── Sweeping spotlight ── */}
+                        <motion.div
+                            animate={{ x:['0%','120%','0%'], opacity:[0.05, 0.15, 0.05] }}
+                            transition={{ duration:5, repeat:Infinity, ease:'easeInOut' }}
+                            style={{ position:'fixed', top:0, left:'-40%', width:'80%', height:'100%',
+                                background:'linear-gradient(90deg,transparent,rgba(255,215,0,0.1),transparent)',
+                                pointerEvents:'none', zIndex:2 }} />
+
+                        {/* ── Content ── */}
+                        <div style={{ width:'100%', maxWidth:'820px', padding:'48px 24px 80px',
+                            position:'relative', zIndex:10 }} onClick={e => e.stopPropagation()}>
+
+                            {/* ── Header ── */}
+                            <motion.div initial={{ opacity:0, y:-40, scale:0.9 }}
+                                animate={{ opacity:1, y:0, scale:1 }}
+                                transition={{ type:'spring', bounce:0.4, delay:0.1 }}
+                                style={{ textAlign:'center', marginBottom:'16px' }}>
+                                <div style={{ fontFamily:'var(--font-mono)', fontSize:'9px', letterSpacing:'0.4em',
+                                    color:'#d4a017', marginBottom:'20px', textTransform:'uppercase' }}>
+                                    ⚡ CODEQUEST SECRET MODULE ⚡
+                                </div>
+
+                                {/* Animated belt emoji */}
+                                <motion.div animate={{ scale:[1,1.12,1], filter:['brightness(1)','brightness(1.6)','brightness(1)'] }}
+                                    transition={{ duration:2, repeat:Infinity, ease:'easeInOut' }}
+                                    style={{ fontSize:'52px', marginBottom:'16px', display:'block' }}>🏆</motion.div>
+
+                                <motion.div
+                                    animate={{ textShadow:['0 0 20px rgba(212,160,23,0.2)','0 0 60px rgba(212,160,23,0.7)','0 0 20px rgba(212,160,23,0.2)'] }}
+                                    transition={{ duration:2.5, repeat:Infinity }}
+                                    style={{ fontFamily:'var(--font-display)', fontSize:'clamp(40px,8vw,80px)',
+                                        fontWeight:900, color:'#d4a017', textTransform:'uppercase',
+                                        letterSpacing:'0.08em', lineHeight:1 }}>
+                                    WWE LEGENDS
+                                </motion.div>
+
+                                <div style={{ fontFamily:'var(--font-display)', fontSize:'13px', color:'#444',
+                                    textTransform:'uppercase', letterSpacing:'0.25em', marginTop:'14px' }}>
+                                    A FAREWELL TO THE IMMORTALS
+                                </div>
+
+                                {/* Animated divider */}
+                                <motion.div initial={{ width:0 }} animate={{ width:'120px' }}
+                                    transition={{ delay:0.6, duration:0.8, ease:'easeOut' }}
+                                    style={{ height:'2px', background:'linear-gradient(90deg,transparent,#d4a017,transparent)',
+                                        margin:'20px auto 0' }} />
+                            </motion.div>
+
+                            {/* ── Wrestler cards ── */}
+                            {[
+                                {
+                                    name: 'JOHN CENA',
+                                    tag: '17× WORLD CHAMPION',
+                                    years: '2002 – 2025',
+                                    careerYrs: 23,
+                                    accent: '#4a9eff',
+                                    emoji: '🎖️',
+                                    final: "Saturday Night's Main Event Vol. 1 — 2026",
+                                    quote: '"Never Give Up"',
+                                    facts: [
+                                        '17-time world champion — record-holder',
+                                        'Granted over 650 Make-A-Wish requests',
+                                        'Hollywood: F9, Peacemaker, Suicide Squad',
+                                        'The face of WWE for over two decades',
+                                    ],
+                                },
+                                {
+                                    name: 'AJ STYLES',
+                                    tag: 'THE PHENOMENAL ONE',
+                                    years: '1998 – 2026',
+                                    careerYrs: 28,
+                                    accent: '#FF2D00',
+                                    emoji: '🔥',
+                                    final: 'Royal Rumble — Career vs. Title — Jan 2026',
+                                    quote: '"I am Phenomenal!"',
+                                    facts: [
+                                        'TNA/Impact: 2002–2014 — multiple world titles',
+                                        'NJPW IWGP Heavyweight Champion: 2014–2016',
+                                        'WWE Champion in his debut year at age 38',
+                                        'Now coaching the next generation of superstars',
+                                    ],
+                                },
+                                {
+                                    name: 'BROCK LESNAR',
+                                    tag: 'THE BEAST INCARNATE',
+                                    years: '2000 – 2026',
+                                    careerYrs: 26,
+                                    accent: '#22c55e',
+                                    emoji: '💀',
+                                    final: 'WrestleMania 42 — Left boots & gloves in the ring',
+                                    quote: '"Suplex City, Bitch."',
+                                    facts: [
+                                        'NCAA Division I Heavyweight Wrestling Champion',
+                                        'UFC Heavyweight Champion — conquered two worlds',
+                                        "Ended The Undertaker's legendary 21-0 streak",
+                                        'Moved to WWE Alumni — an era truly over',
+                                    ],
+                                },
+                            ].map((w, i) => (
+                                <motion.div key={w.name}
+                                    initial={{ opacity:0, y:50, scale:0.95 }}
+                                    animate={{ opacity:1, y:0, scale:1 }}
+                                    transition={{ delay: 0.4 + i * 0.22, type:'spring', bounce:0.35 }}
+                                    style={{ marginBottom:'16px', position:'relative' }}>
+
+                                    {/* Pulsing border glow */}
+                                    <motion.div
+                                        animate={{ opacity:[0.3, 0.8, 0.3], boxShadow:[`0 0 0px ${w.accent}00`,`0 0 16px ${w.accent}50`,`0 0 0px ${w.accent}00`] }}
+                                        transition={{ duration:2.5, repeat:Infinity, delay: i * 0.7 }}
+                                        style={{ position:'absolute', inset:0, pointerEvents:'none', borderLeft:`4px solid ${w.accent}` }} />
+
+                                    <div style={{ background:'#0a0a0a', borderLeft:`4px solid ${w.accent}`, padding:'24px 24px 0' }}>
+
+                                        {/* Name header row */}
+                                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start',
+                                            marginBottom:'14px', flexWrap:'wrap', gap:'8px' }}>
+                                            <div>
+                                                {/* Dramatic name entrance */}
+                                                <motion.div initial={{ x:-20, opacity:0 }} animate={{ x:0, opacity:1 }}
+                                                    transition={{ delay: 0.5 + i * 0.22, type:'spring' }}
+                                                    style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'6px' }}>
+                                                    <motion.span animate={{ scale:[1,1.3,1] }}
+                                                        transition={{ duration:1.8, repeat:Infinity, delay: i*0.5 }}
+                                                        style={{ fontSize:'22px' }}>{w.emoji}</motion.span>
+                                                    <div style={{ fontFamily:'var(--font-display)', fontSize:'24px', fontWeight:900,
+                                                        color:'#E8DDD0', textTransform:'uppercase', letterSpacing:'0.06em' }}>
+                                                        {w.name}
+                                                    </div>
+                                                </motion.div>
+                                                <div style={{ fontFamily:'var(--font-mono)', fontSize:'9px',
+                                                    color:w.accent, letterSpacing:'0.25em', textTransform:'uppercase' }}>
+                                                    {w.tag}
+                                                </div>
+                                            </div>
+                                            <div style={{ textAlign:'right' }}>
+                                                <div style={{ fontFamily:'var(--font-mono)', fontSize:'11px', color:'#333' }}>{w.years}</div>
+                                                <motion.div animate={{ rotate:[0,5,-5,0] }}
+                                                    transition={{ duration:3, repeat:Infinity, delay: i*0.4 }}
+                                                    style={{ fontSize:'22px', marginTop:'4px' }}>🏆</motion.div>
+                                            </div>
+                                        </div>
+
+                                        {/* Career bar */}
+                                        <div style={{ marginBottom:'16px' }}>
+                                            <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'4px' }}>
+                                                <span style={{ fontFamily:'var(--font-mono)', fontSize:'9px', color:'#333',
+                                                    letterSpacing:'0.2em', textTransform:'uppercase' }}>CAREER SPAN</span>
+                                                <span style={{ fontFamily:'var(--font-mono)', fontSize:'9px', color: w.accent }}>{w.careerYrs} YEARS</span>
+                                            </div>
+                                            <div style={{ height:'2px', background:'#111', overflow:'hidden' }}>
+                                                <motion.div initial={{ width:0 }}
+                                                    animate={{ width:`${(w.careerYrs / 28) * 100}%` }}
+                                                    transition={{ delay: 0.7 + i * 0.22, duration:1.2, ease:'easeOut' }}
+                                                    style={{ height:'100%', background:w.accent }} />
+                                            </div>
+                                        </div>
+
+                                        {/* Quote */}
+                                        <motion.div
+                                            animate={{ borderColor:[`${w.accent}33`,w.accent,`${w.accent}33`] }}
+                                            transition={{ duration:3, repeat:Infinity, delay: i * 0.8 }}
+                                            style={{ fontFamily:'var(--font-display)', fontSize:'15px', fontStyle:'italic',
+                                                color:w.accent, marginBottom:'16px', padding:'10px 14px',
+                                                border:`1px solid ${w.accent}33` }}>
+                                            {w.quote}
+                                        </motion.div>
+
+                                        {/* Facts */}
+                                        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'6px 16px', marginBottom:'16px' }}>
+                                            {w.facts.map((f, fi) => (
+                                                <motion.div key={fi} initial={{ opacity:0, x:-10 }} animate={{ opacity:1, x:0 }}
+                                                    transition={{ delay: 0.8 + i * 0.22 + fi * 0.07 }}
+                                                    style={{ display:'flex', gap:'8px', alignItems:'flex-start' }}>
+                                                    <span style={{ color:w.accent, fontSize:'10px', marginTop:'3px', flexShrink:0 }}>▸</span>
+                                                    <span style={{ fontFamily:'var(--font-mono)', fontSize:'11px', color:'#666', lineHeight:1.5 }}>{f}</span>
+                                                </motion.div>
+                                            ))}
+                                        </div>
+
+                                        {/* Final match bar */}
+                                        <div style={{ padding:'10px 14px', background:'#060606',
+                                            borderTop:'1px solid #0f0f0f', margin:'0 -24px' }}>
+                                            <span style={{ fontFamily:'var(--font-mono)', fontSize:'9px', color:'#2a2a2a',
+                                                letterSpacing:'0.2em', textTransform:'uppercase' }}>FINAL MATCH — </span>
+                                            <span style={{ fontFamily:'var(--font-mono)', fontSize:'10px', color:'#555' }}>{w.final}</span>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))}
+
+                            {/* ── Footer ── */}
+                            <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:1.2 }}
+                                style={{ textAlign:'center', marginTop:'40px' }}>
+
+                                {/* Animated trophy row */}
+                                <div style={{ display:'flex', justifyContent:'center', gap:'24px', marginBottom:'20px' }}>
+                                    {['🎖️','🏆','💀'].map((e, i) => (
+                                        <motion.span key={i}
+                                            animate={{ y:[0,-8,0], opacity:[0.6,1,0.6] }}
+                                            transition={{ duration:1.5, repeat:Infinity, delay: i * 0.4 }}
+                                            style={{ fontSize:'28px' }}>{e}</motion.span>
+                                    ))}
+                                </div>
+
+                                <div style={{ fontFamily:'var(--font-mono)', fontSize:'9px', color:'#222',
+                                    letterSpacing:'0.25em', textTransform:'uppercase', marginBottom:'28px' }}>
+                                    +75 XP &nbsp;·&nbsp; +30 COINS &nbsp;·&nbsp; BADGE: HARDCORE CODER
+                                </div>
+
+                                <motion.button onClick={() => setWwe(false)}
+                                    whileHover={{ scale:1.04 }} whileTap={{ scale:0.97 }}
+                                    animate={{ boxShadow:['0 0 0px #d4a01700','0 0 20px #d4a01740','0 0 0px #d4a01700'] }}
+                                    transition={{ duration:2.5, repeat:Infinity }}
+                                    style={{ padding:'14px 40px', border:'1px solid #d4a017', background:'transparent',
+                                        color:'#d4a017', fontFamily:'var(--font-display)', fontSize:'12px',
+                                        fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', cursor:'pointer' }}>
+                                    BACK TO THE RING
+                                </motion.button>
+                            </motion.div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <Navbar />
+
+
 
             {/* ── TWO PANEL LAYOUT ── */}
             <div style={{ flex:1, display:'flex', overflow:'hidden', height:'calc(100vh - 76px)' }}>

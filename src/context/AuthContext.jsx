@@ -46,7 +46,10 @@ export const AuthProvider = ({ children }) => {
                 created_at: u.created_at,
             });
         } catch (err) {
-            const msg = err.response?.data?.message || 'Invalid credentials';
+            if (!err.response) {
+                throw new Error('SERVER IS OFFLINE');
+            }
+            const msg = err.response?.data?.message || 'INVALID CREDENTIALS';
             throw new Error(msg);
         }
     };

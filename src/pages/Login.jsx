@@ -46,7 +46,7 @@ const Login = () => {
                             <span style={{ color:'#E8DDD0' }}>QUEST</span>
                         </span>
                     </Link>
-                    <span className="label-tech">VOL. 1 / 2025</span>
+                    <span className="label-tech">VOL. 1 / 2026</span>
                 </div>
             </div>
 
@@ -124,7 +124,7 @@ const Login = () => {
                     </button>
 
                     <p className="label-tech" style={{ textAlign:'center', marginTop:'24px', color:'#1e1e1e' }}>
-                        PYTHON GAMIFIED — CODEQUEST © 2025
+                        PYTHON GAMIFIED — CODEQUEST © 2026
                     </p>
                 </motion.div>
             </div>

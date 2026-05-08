@@ -9,9 +9,9 @@ const Navbar = () => {
     const location = useLocation();
 
     const links = [
-        { to: '/dashboard', label: 'LEARN' },
-        { to: '/syntax-sorter', label: 'MINI GAME' },
-        { to: '/shop', label: 'SHOP' },
+        { to: '/dashboard',  label: 'LEARN' },
+        { to: '/mini-games', label: 'MINI GAME' },
+        { to: '/shop',       label: 'SHOP' },
     ];
 
     const energy = user?.energy ?? MAX_ENERGY;
@@ -107,7 +107,7 @@ const Navbar = () => {
                     <span className="label-tech" style={{ color: '#FF2D00' }}>
                         🔥 {user?.current_streak || 0}-DAY STREAK
                     </span>
-                    <span className="label-tech" style={{ color: '#222' }}>VOL. 1 / 2025</span>
+                    <span className="label-tech" style={{ color: '#222' }}>VOL. 1 / 2026</span>
                 </div>
             </div>
         </nav>

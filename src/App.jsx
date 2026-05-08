@@ -1,4 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
+import { useState } from 'react';
+import SplashScreen from './components/SplashScreen';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -7,6 +9,11 @@ import LanguageSelect from './pages/LanguageSelect';
 import Profile from './pages/Profile';
 import Shop from './pages/Shop';
 import SyntaxSorter from './pages/SyntaxSorter';
+import PixelPath from './pages/PixelPath';
+import MiniGames from './pages/MiniGames';
+import VariableVault from './pages/VariableVault';
+import SyntaxRacer from './pages/SyntaxRacer';
+import BugHunt from './pages/BugHunt';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Admin imports
@@ -15,6 +22,13 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminLevelForm from './pages/AdminLevelForm';
 
 function App() {
+  const [splash, setSplash] = useState(true);
+
+  const handleSplashDone = () => {
+    setSplash(false);
+  };
+
+  if (splash) return <SplashScreen onDone={handleSplashDone} />;
   return (
     <Routes>
       <Route path="/" element={<Home />} />
@@ -55,6 +69,31 @@ function App() {
       <Route path="/syntax-sorter" element={
         <ProtectedRoute>
           <SyntaxSorter />
+        </ProtectedRoute>
+      } />
+      <Route path="/pixel-path" element={
+        <ProtectedRoute>
+          <PixelPath />
+        </ProtectedRoute>
+      } />
+      <Route path="/mini-games" element={
+        <ProtectedRoute>
+          <MiniGames />
+        </ProtectedRoute>
+      } />
+      <Route path="/variable-vault" element={
+        <ProtectedRoute>
+          <VariableVault />
+        </ProtectedRoute>
+      } />
+      <Route path="/syntax-racer" element={
+        <ProtectedRoute>
+          <SyntaxRacer />
+        </ProtectedRoute>
+      } />
+      <Route path="/bug-hunt" element={
+        <ProtectedRoute>
+          <BugHunt />
         </ProtectedRoute>
       } />
     </Routes>

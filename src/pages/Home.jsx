@@ -124,7 +124,7 @@ const Home = () => {
             <div style={{ borderBottom: '1px solid #1a1a1a', padding: '7px 0', background: '#060606', position: 'relative', zIndex: 10 }}>
                 <div style={{ maxWidth:'1200px', margin:'0 auto', padding:'0 48px', display:'flex', justifyContent:'space-between' }}>
                     <span className="label-tech">CODEQUEST.DEV</span>
-                    <span className="label-tech">VOL. 1 / 2025</span>
+                    <span className="label-tech">VOL. 1 / 2026</span>
                 </div>
             </div>
 
@@ -210,7 +210,8 @@ const Home = () => {
 
             {/* ── WHAT IS CODEQUEST ── */}
             <section style={{ borderBottom:'1px solid #1a1a1a', padding:'100px 0' }}>
-                <div style={{ maxWidth:'1200px', margin:'0 auto', padding:'0 48px', display:'grid', gridTemplateColumns:'300px 1fr', gap:'80px', alignItems:'start' }}>
+                <motion.div initial={{ opacity:0, y:48 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true, margin:'-80px' }} transition={{ duration:0.7, ease:[0.16,1,0.3,1] }}
+                    style={{ maxWidth:'1200px', margin:'0 auto', padding:'0 48px', display:'grid', gridTemplateColumns:'300px 1fr', gap:'80px', alignItems:'start' }}>
                     <div>
                         <p className="label-tech" style={{ color:'#FF2D00', marginBottom:'20px' }}>/ WHAT IT IS</p>
                         <div className="headline-xl" style={{ fontSize:'clamp(28px,4vw,52px)', color:'#E8DDD0' }}>
@@ -238,12 +239,13 @@ const Home = () => {
                             ))}
                         </div>
                     </div>
-                </div>
+                </motion.div>
             </section>
 
             {/* ── CURRICULUM ── */}
             <section style={{ padding:'100px 0', borderBottom:'1px solid #1a1a1a' }}>
-                <div style={{ maxWidth:'1200px', margin:'0 auto', padding:'0 48px' }}>
+                <motion.div initial={{ opacity:0, y:48 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true, margin:'-80px' }} transition={{ duration:0.7, ease:[0.16,1,0.3,1] }}
+                    style={{ maxWidth:'1200px', margin:'0 auto', padding:'0 48px' }}>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:'48px' }}>
                         <div>
                             <p className="label-tech" style={{ color:'#FF2D00', marginBottom:'12px' }}>/ CURRICULUM</p>
@@ -268,12 +270,56 @@ const Home = () => {
                             </Link>
                         ))}
                     </div>
-                </div>
+                </motion.div>
+            </section>
+
+            {/* ── QUICK ACCESS ── */}
+            <section style={{ padding:'80px 0', borderBottom:'1px solid #1a1a1a', background:'#050505' }}>
+                <motion.div initial={{ opacity:0, y:48 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true, margin:'-80px' }} transition={{ duration:0.7, ease:[0.16,1,0.3,1] }}
+                    style={{ maxWidth:'1200px', margin:'0 auto', padding:'0 48px' }}>
+                    <p className="label-tech" style={{ color:'#FF2D00', marginBottom:'12px' }}>/ QUICK ACCESS</p>
+                    <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'2px', marginTop:'32px' }}>
+                        {[
+                            { to:'/mini-games', emoji:'🎮', label:'MINI GAMES', sub:'4 games available', accent:'#FF2D00',
+                              items:['🔀 Syntax Sorter','👾 Pixel Path','🔐 Variable Vault','🚀 Syntax Racer'] },
+                            { to:'/shop', emoji:'🛒', label:'SHOP', sub:'Spend your coins', accent:'#FF2D00',
+                              items:['Energy Refills','XP Boosters','Streak Shields','Theme Unlocks'] },
+                            { to:'/profile', emoji:'👤', label:'PROFILE', sub:'Your stats & progress', accent:'#FF2D00',
+                              items:['XP & Level Rank','Streak Calendar','Badges Earned','Completion %'] },
+                        ].map(({to,emoji,label,sub,accent,items},i)=>(
+                            <motion.div key={to} initial={{ opacity:0, y:32 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} transition={{ delay:i*0.12, duration:0.6, ease:[0.16,1,0.3,1] }}
+                                style={{ position:'relative' }}>
+                                <div style={{ width:'3px', position:'absolute', top:0, bottom:0, left:0, background:accent }} />
+                                <div style={{ background:'#080808', border:'1px solid #1a1a1a', borderLeft:'none', padding:'28px 28px 24px 32px', height:'100%', boxSizing:'border-box', display:'flex', flexDirection:'column' }}>
+                                    <div style={{ fontSize:'28px', marginBottom:'12px' }}>{emoji}</div>
+                                    <div style={{ fontFamily:'var(--font-display)', fontSize:'18px', fontWeight:900, color:'#E8DDD0', textTransform:'uppercase', letterSpacing:'0.04em', marginBottom:'4px' }}>{label}</div>
+                                    <div className="label-tech" style={{ color:accent, marginBottom:'20px' }}>{sub}</div>
+                                    <div style={{ flex:1, display:'flex', flexDirection:'column', gap:'6px', marginBottom:'24px' }}>
+                                        {items.map(item=>(
+                                            <div key={item} style={{ fontFamily:'var(--font-mono)', fontSize:'11px', color:'#333', display:'flex', alignItems:'center', gap:'8px' }}>
+                                                <span style={{ width:'3px', height:'3px', borderRadius:'50%', background:accent, flexShrink:0 }}/>{item}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <Link to={to} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 16px',
+                                        border:`1px solid ${accent}`, color:accent, fontFamily:'var(--font-display)', fontSize:'11px',
+                                        fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', textDecoration:'none',
+                                        transition:'all 0.15s' }}
+                                        onMouseEnter={e=>{e.currentTarget.style.background=accent;e.currentTarget.style.color='#080808';}}
+                                        onMouseLeave={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color=accent;}}>
+                                        <span>OPEN</span><span>→</span>
+                                    </Link>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </motion.div>
             </section>
 
             {/* ── CTA ── */}
             <section style={{ padding:'120px 0' }}>
-                <div style={{ maxWidth:'1200px', margin:'0 auto', padding:'0 48px', textAlign:'center' }}>
+                <motion.div initial={{ opacity:0, y:48 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true, margin:'-80px' }} transition={{ duration:0.7, ease:[0.16,1,0.3,1] }}
+                    style={{ maxWidth:'1200px', margin:'0 auto', padding:'0 48px', textAlign:'center' }}>
                     <p className="label-tech" style={{ color:'#FF2D00', marginBottom:'20px' }}>/ START NOW</p>
                     <div className="headline-xl" style={{ fontSize:'clamp(36px,8vw,110px)', color:'#E8DDD0', marginBottom:'48px', lineHeight:0.9 }}>
                         WRITE YOUR<br/><span style={{ color:'#FF2D00' }}>FIRST LINE.</span>
@@ -282,13 +328,13 @@ const Home = () => {
                         style={{ display:'inline-block', padding:'18px 48px', fontFamily:'var(--font-display)', fontSize:'16px', letterSpacing:'0.12em', textDecoration:'none' }}>
                         ENTER CODEQUEST
                     </Link>
-                </div>
+                </motion.div>
             </section>
 
             {/* ── FOOTER ── */}
             <footer style={{ borderTop:'1px solid #1a1a1a', padding:'20px 0', background:'#060606' }}>
                 <div style={{ maxWidth:'1200px', margin:'0 auto', padding:'0 48px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                    <span className="label-tech"><span style={{color:'#FF2D00'}}>CODE</span>QUEST © 2025</span>
+                    <span className="label-tech"><span style={{color:'#FF2D00'}}>CODE</span>QUEST © 2026</span>
                     <span className="label-tech">PYTHON GAMIFIED</span>
                     <span className="label-tech" style={{color:'#FF2D00'}}>→ SCROLL TO TUNE IN</span>
                 </div>
