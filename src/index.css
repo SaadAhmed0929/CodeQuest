@@ -1,0 +1,157 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --color-bg:       #080808;
+  --color-accent:   #FF2D00;
+  --color-cream:    #E8DDD0;
+  --color-muted:    #2a2a2a;
+  --color-muted2:   #444444;
+  --color-bg-dark:  #080808;
+  --color-bg-panel: #111111;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Oswald', 'Barlow Condensed', ui-sans-serif, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* ── Global ────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: var(--color-cream);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Scrollbar ─────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #080808; }
+::-webkit-scrollbar-thumb { background: var(--color-accent); }
+
+/* ── Typography ────────────────────────────────────────────────── */
+.font-display { font-family: var(--font-display) !important; }
+code, pre, .font-mono { font-family: var(--font-mono) !important; }
+
+/* ── Design Tokens ─────────────────────────────────────────────── */
+@layer utilities {
+
+  /* Massive editorial headline */
+  .headline-xl {
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  /* Red accent text */
+  .text-accent { color: var(--color-accent); }
+  .text-cream  { color: var(--color-cream);  }
+
+  /* Technical small label — like metadata in corners */
+  .label-tech {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-muted2);
+  }
+
+  /* Card: stark, no glow — just a thin red left border accent */
+  .card-stark {
+    background: #111111;
+    border: 1px solid #1e1e1e;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .card-stark:hover {
+    border-color: var(--color-accent);
+    background: #141414;
+  }
+
+  /* Thick red-accent left border card */
+  .card-accent-left {
+    background: #111111;
+    border: 1px solid #1e1e1e;
+    border-left: 3px solid var(--color-accent);
+  }
+
+  /* Solid accent button */
+  .btn-accent {
+    background: var(--color-accent);
+    color: #080808;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    transition: all 0.12s;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-accent:hover   { background: #ff4422; }
+  .btn-accent:active  { transform: translateY(2px); }
+
+  /* Ghost button */
+  .btn-ghost {
+    background: transparent;
+    color: var(--color-cream);
+    border: 1px solid #333;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    transition: all 0.12s;
+    cursor: pointer;
+  }
+  .btn-ghost:hover { border-color: var(--color-accent); color: var(--color-accent); }
+
+  /* Thin divider */
+  .divider { height: 1px; background: #1e1e1e; width: 100%; }
+
+  /* Stat block */
+  .stat-block {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 16px 20px;
+    border: 1px solid #1e1e1e;
+    background: #0f0f0f;
+  }
+  .stat-block:hover { border-color: #333; }
+
+  /* Horizontal scroll marquee */
+  .marquee-track {
+    display: flex;
+    white-space: nowrap;
+    animation: marquee 18s linear infinite;
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  /* Progress bar */
+  .progress-bar-bg { background: #1e1e1e; height: 3px; }
+  .progress-bar-fill { background: var(--color-accent); height: 3px; transition: width 0.8s ease; }
+
+  /* Code block in dark IDE style */
+  .code-panel {
+    background: #0a0a0a;
+    border: 1px solid #1e1e1e;
+    font-family: var(--font-mono);
+  }
+
+  /* Neon-free highlight for level cards */
+  .level-locked  { opacity: 0.3; pointer-events: none; }
+  .level-done    { border-color: #22c55e !important; }
+  .level-active  { border-color: var(--color-accent) !important; }
+}
+
+/* Prose overrides */
+.prose {
+  --tw-prose-body: #b0a898;
+  --tw-prose-headings: #E8DDD0;
+  --tw-prose-code: #ff9d85;
+  --tw-prose-pre-bg: #0f0f0f;
+  --tw-prose-links: #FF2D00;
+}

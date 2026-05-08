@@ -1,0 +1,449 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import Navbar from '../components/Navbar';
+import Editor from '@monaco-editor/react';
+import { ArrowRight } from 'lucide-react';
+import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
+import ReactConfetti from 'react-confetti';
+import { motion, AnimatePresence } from 'framer-motion';
+import { LEVEL_MAP } from '../data/curriculum';
+
+const Level = () => {
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const { user, deductEnergy, awardLevel, markLevelComplete, MAX_ENERGY } = useAuth();
+    const [level, setLevel] = useState(null);
+    const [code, setCode] = useState('');
+    const [isRunning, setIsRunning] = useState(false);
+    const [result, setResult] = useState(null);
+    const [testResults, setTestResults] = useState([]);
+    const [activeTab, setActiveTab] = useState(0);
+    const [showConfetti, setShowConfetti] = useState(false);
+    const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
+    const [antigravity, setAntigravity] = useState(false);
+    const hasFailed = useRef(false);
+
+    useEffect(() => {
+        const handleResize = () => setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    useEffect(() => {
+        const fetchLevel = async () => {
+            try {
+                const res = await api.get(`/levels/${id}`);
+                if (res.data && res.data.Title) {
+                    setLevel(res.data);
+                    setCode(res.data.content?.initial_code || '# Write your code here\n');
+                } else {
+                    throw new Error('Empty response');
+                }
+            } catch {
+                // Backend unreachable — use bundled curriculum fallback
+                const fallback = LEVEL_MAP[parseInt(id)];
+                if (fallback) {
+                    setLevel(fallback);
+            setCode(fallback.content?.initial_code || '# Write your code here\n');
+                }
+            }
+            setResult(null);
+            setTestResults([]);
+            hasFailed.current = false;
+        };
+        fetchLevel();
+    }, [id]);
+
+    // ── Code runner: local backend → Piston API fallback ──────────
+    const runCode = async (sourceCode) => {
+        // 1. Try local backend
+        try {
+            const res = await api.post('/execute', {
+                source_code: sourceCode,
+                language_id: 71,
+            });
+            return (res.data.stdout || res.data.stderr || res.data.compile_output || '').trim();
+        } catch { /* fall through */ }
+
+        // 2. Piston public API (free, no key)
+        const pistonRes = await fetch('https://emkc.org/api/v2/piston/execute', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                language: 'python',
+                version: '3.10.0',
+                files: [{ content: sourceCode }],
+            }),
+        });
+        const pistonData = await pistonRes.json();
+        return (pistonData.run?.stdout || pistonData.run?.stderr || '').trim();
+    };
+
+
+    const handleRunCode = async () => {
+        // 🚀 EASTER EGG
+        if (code.trim().includes('import antigravity')) {
+            setAntigravity(true);
+            setShowConfetti(true);
+            awardLevel(50, 20);
+            setTimeout(() => setShowConfetti(false), 6000);
+            return;
+        }
+
+        if ((user?.energy ?? MAX_ENERGY) === 0) return;
+        setIsRunning(true);
+        setResult(null);
+        setActiveTab(0);
+        deductEnergy();
+
+        const testCases = level?.content?.test_cases || [];
+
+        try {
+            const initialTabs = testCases.map((tc, idx) => ({
+                name: tc.label || `Test ${idx + 1}`,
+                output: 'In queue...',
+                status: 'waiting',
+                passed: false,
+                expected: tc.expected_output,
+            }));
+            setTestResults([...initialTabs]);
+
+            let allPassed = true;
+            const completed = [...initialTabs];
+
+            for (let i = 0; i < testCases.length; i++) {
+                const tc = testCases[i];
+                setActiveTab(i);
+                completed[i] = { ...completed[i], status: 'running', output: 'Executing...' };
+                setTestResults([...completed]);
+
+                const compoundCode = (tc.hidden_code ? tc.hidden_code + '\n\n' : '') + code.trimEnd();
+
+                try {
+                    const trimmedOut = await runCode(compoundCode);
+                    const isAccepted = trimmedOut === tc.expected_output?.trim();
+                    if (!isAccepted) allPassed = false;
+                    completed[i] = { ...completed[i], output: trimmedOut, passed: isAccepted, status: 'done' };
+                } catch (err) {
+                    allPassed = false;
+                    completed[i] = { ...completed[i], output: `Error: ${err.message}`, passed: false, status: 'done' };
+                }
+                setTestResults([...completed]);
+            }
+
+            let badge = null;
+            const hour = new Date().getHours();
+            if (allPassed && hasFailed.current) badge = { icon: '🐛', name: 'Syntax Squasher', desc: 'Failed once, then nailed it!' };
+            if (allPassed && hour >= 0 && hour < 5) badge = { icon: '🦉', name: 'Night Owl', desc: 'Coding after midnight!' };
+
+            if (allPassed) {
+                const pts = level.points_value || 10;
+                const coins = level.coins_value || 5;
+                awardLevel(pts, coins);
+                markLevelComplete(parseInt(id));
+                setShowConfetti(true);
+                setTimeout(() => setShowConfetti(false), 5000);
+                setResult({ success: true, message: 'All tests passed!', points: pts, coins, badge });
+            } else {
+                hasFailed.current = true;
+                setResult({ success: false, message: 'Not all tests passed. Check your output and try again.' });
+            }
+        } catch {
+            setTestResults([{ name: 'Error', output: 'Could not connect to execution server.', status: 'done', passed: false }]);
+        } finally {
+            setIsRunning(false);
+        }
+    };
+
+    // ── Loading state ─────────────────────────────────────────────
+    if (!level) {
+        return (
+            <div style={{ background: '#080808', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+                <Navbar />
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ textAlign: 'center' }}>
+                        <div style={{ width: '32px', height: '2px', background: '#FF2D00', margin: '0 auto 16px' }} />
+                        <p className="label-tech" style={{ color: '#333' }}>LOADING LEVEL...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    const noEnergy = (user?.energy ?? MAX_ENERGY) === 0;
+    const nextLevelId = parseInt(id) + 1;
+
+    // ── Render ────────────────────────────────────────────────────
+    return (
+        <div style={{ background: '#080808', minHeight: '100vh', display: 'flex', flexDirection: 'column', color: '#E8DDD0' }}>
+
+            {/* Confetti */}
+            {showConfetti && (
+                <ReactConfetti width={windowSize.width} height={windowSize.height}
+                    recycle={false} numberOfPieces={350} gravity={0.25}
+                    colors={['#FF2D00','#d4a017','#E8DDD0','#7cc47a','#e8623a']} />
+            )}
+
+            {/* 🚀 ANTIGRAVITY EASTER EGG */}
+            <AnimatePresence>
+                {antigravity && (
+                    <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }}
+                        style={{ position:'fixed', inset:0, zIndex:999, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', overflow:'hidden', background:'#000', cursor:'pointer' }}
+                        onClick={() => setAntigravity(false)}>
+                        {Array.from({length:40}).map((_,i) => (
+                            <motion.div key={i}
+                                style={{ position:'absolute', borderRadius:'50%', background:'white',
+                                    width:`${Math.random()*3+1}px`, height:`${Math.random()*3+1}px`,
+                                    top:`${Math.random()*100}%`, left:`${Math.random()*100}%` }}
+                                animate={{ opacity:[0.2,1,0.2] }}
+                                transition={{ duration:1.5+Math.random()*2, repeat:Infinity, delay:Math.random()*2 }} />
+                        ))}
+                        <motion.div initial={{y:0}} animate={{y:-window.innerHeight-200}}
+                            transition={{duration:2.5,delay:0.5,ease:'easeIn'}}
+                            style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)' }}>
+                            <div style={{ width:'280px', border:'2px solid #FF2D00' }}>
+                                <div style={{ background:'#111', padding:'8px 12px', display:'flex', gap:'6px', alignItems:'center' }}>
+                                    {['#ff5f57','#febc2e','#28c840'].map((c,i)=><div key={i} style={{width:'9px',height:'9px',borderRadius:'50%',background:c}}/>)}
+                                    <span style={{ fontFamily:'var(--font-mono)', fontSize:'11px', color:'#555', marginLeft:'8px' }}>main.py</span>
+                                </div>
+                                <div style={{ background:'#080808', padding:'16px', fontFamily:'var(--font-mono)', fontSize:'13px' }}>
+                                    <span style={{color:'#FF2D00'}}>import</span>
+                                    <span style={{color:'#E8DDD0'}}> antigravity</span>
+                                </div>
+                            </div>
+                        </motion.div>
+                        <motion.div initial={{y:100,scale:0}} animate={{y:-window.innerHeight,scale:[0,1.5,1]}}
+                            transition={{duration:3,delay:0.3,ease:'easeIn'}}
+                            style={{ position:'absolute', bottom:'20%', fontSize:'60px' }}>🚀</motion.div>
+                        <motion.div initial={{opacity:0,scale:0.5}} animate={{opacity:1,scale:1}}
+                            transition={{delay:0.2,type:'spring',bounce:0.5}}
+                            style={{ textAlign:'center', padding:'0 32px', position:'relative', zIndex:10 }}>
+                            <div style={{fontSize:'56px',marginBottom:'16px'}}>🪐</div>
+                            <div style={{ fontFamily:'var(--font-display)', fontSize:'32px', fontWeight:700, color:'#FF2D00', textTransform:'uppercase', marginBottom:'8px' }}>You Found It!</div>
+                            <p style={{ fontFamily:'var(--font-mono)', fontSize:'12px', color:'#555', marginBottom:'24px', lineHeight:1.6 }}>
+                                <span style={{color:'#E8DDD0'}}>import antigravity</span> is a real Python Easter egg.<br/>
+                                Try it in a real interpreter — it opens a comic!
+                            </p>
+                            <div style={{ display:'inline-flex', alignItems:'center', gap:'12px', padding:'14px 22px', border:'2px solid #FF2D00', marginBottom:'24px' }}>
+                                <span style={{fontSize:'22px'}}>🏆</span>
+                                <div style={{textAlign:'left'}}>
+                                    <p style={{ fontFamily:'var(--font-display)', fontWeight:700, color:'#E8DDD0', textTransform:'uppercase', fontSize:'14px' }}>Secret Badge Unlocked!</p>
+                                    <p style={{ fontFamily:'var(--font-mono)', fontSize:'10px', color:'#FF2D00', marginTop:'2px' }}>ANTIGRAVITY EXPLORER — +50 XP, +20 COINS</p>
+                                </div>
+                            </div>
+                            <br />
+                            <button onClick={() => setAntigravity(false)}
+                                style={{ padding:'10px 24px', border:'1px solid #333', background:'transparent', color:'#E8DDD0', fontFamily:'var(--font-mono)', fontSize:'10px', letterSpacing:'0.15em', cursor:'pointer', textTransform:'uppercase' }}>
+                                RETURN TO EARTH
+                            </button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <Navbar />
+
+            {/* ── TWO PANEL LAYOUT ── */}
+            <div style={{ flex:1, display:'flex', overflow:'hidden', height:'calc(100vh - 76px)' }}>
+
+                {/* ─────────── LEFT PANEL: Lesson + Task ─────────── */}
+                <div style={{ width:'38%', minWidth:'300px', display:'flex', flexDirection:'column', borderRight:'1px solid #1a1a1a', overflowY:'auto' }}>
+
+                    {/* Badge strip */}
+                    <div style={{ padding:'10px 24px', borderBottom:'1px solid #1a1a1a', background:'#060606', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+                            <span className="label-tech" style={{ color:'#FF2D00' }}>LV.{String(id).padStart(2,'0')}</span>
+                            <span style={{ width:'1px', height:'10px', background:'#1e1e1e' }} />
+                            <span className="label-tech" style={{ color:'#d4a017' }}>+{level.points_value||10} XP</span>
+                            <span className="label-tech" style={{ color:'#444' }}>+{level.coins_value||5} COINS</span>
+                        </div>
+                        <Link to="/dashboard" className="label-tech"
+                            style={{ color:'#333', textDecoration:'none', transition:'color 0.1s' }}
+                            onMouseEnter={e=>e.currentTarget.style.color='#666'}
+                            onMouseLeave={e=>e.currentTarget.style.color='#333'}>← BACK</Link>
+                    </div>
+
+                    {/* Level title */}
+                    <div style={{ padding:'16px 24px', borderBottom:'1px solid #1a1a1a', flexShrink:0 }}>
+                        <div style={{ fontFamily:'var(--font-display)', fontSize:'20px', fontWeight:700, color:'#E8DDD0', textTransform:'uppercase', letterSpacing:'0.04em', lineHeight:1.2 }}>
+                            {level.Title}
+                        </div>
+                    </div>
+
+                    {/* Concept */}
+                    <div style={{ padding:'20px 24px', flex:1 }}>
+                        <p className="label-tech" style={{ color:'#FF2D00', marginBottom:'14px' }}>/ CONCEPT</p>
+                        <div className="prose prose-sm prose-invert max-w-none">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                                {level.content?.concept || ''}
+                            </ReactMarkdown>
+                        </div>
+                    </div>
+
+                    {/* Task box */}
+                    <div style={{ margin:'0 24px 16px', padding:'16px', background:'#0a0a0a', borderLeft:'3px solid #FF2D00', flexShrink:0 }}>
+                        <p className="label-tech" style={{ color:'#FF2D00', marginBottom:'10px' }}>/ YOUR MISSION</p>
+                        <div className="prose prose-sm prose-invert max-w-none">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                                {level.content?.task || ''}
+                            </ReactMarkdown>
+                        </div>
+                    </div>
+
+                    {/* Result banner */}
+                    {result && (
+                        <div style={{ margin:'0 24px 16px', padding:'16px', borderLeft:`3px solid ${result.success?'#22c55e':'#FF2D00'}`, background:result.success?'#081508':'#150505', flexShrink:0 }}>
+                            <div style={{ fontFamily:'var(--font-display)', fontSize:'15px', fontWeight:700, color:result.success?'#22c55e':'#FF2D00', textTransform:'uppercase', marginBottom:'6px' }}>
+                                {result.success ? '✓ LEVEL MASTERED' : '✗ NOT QUITE'}
+                            </div>
+                            <p style={{ fontFamily:'var(--font-mono)', fontSize:'11px', color:'#555', marginBottom:result.success?'12px':0 }}>
+                                {result.message}
+                            </p>
+                            {result.success && (
+                                <div style={{ display:'flex', alignItems:'center', gap:'12px', flexWrap:'wrap' }}>
+                                    <span className="label-tech" style={{ color:'#d4a017' }}>+{result.points} XP</span>
+                                    <span className="label-tech" style={{ color:'#444' }}>+{result.coins} COINS</span>
+                                    <Link to={`/level/${nextLevelId}`}
+                                        style={{ marginLeft:'auto', padding:'7px 16px', background:'#FF2D00', color:'#080808', fontFamily:'var(--font-display)', fontSize:'11px', fontWeight:700, letterSpacing:'0.1em', textDecoration:'none', textTransform:'uppercase' }}>
+                                        NEXT →
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Energy warning */}
+                    {noEnergy && (
+                        <div style={{ margin:'0 24px 16px', padding:'14px 16px', border:'1px solid #e8623a', background:'#130a05', flexShrink:0 }}>
+                            <p className="label-tech" style={{ color:'#e8623a' }}>⚡ OUT OF ENERGY</p>
+                            <p style={{ fontFamily:'var(--font-mono)', fontSize:'11px', color:'#555', marginTop:'4px' }}>
+                                <Link to="/shop" style={{ color:'#e8623a' }}>Visit the Shop</Link> to refill.
+                            </p>
+                        </div>
+                    )}
+                </div>
+
+                {/* ─────────── RIGHT PANEL: Editor + Console ─────────── */}
+                <div style={{ flex:1, display:'flex', flexDirection:'column', minWidth:0 }}>
+
+                    {/* Toolbar */}
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 16px', height:'40px', borderBottom:'1px solid #1a1a1a', background:'#060606', flexShrink:0 }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+                            {['#ff5f57','#febc2e','#28c840'].map((c,i)=>(
+                                <div key={i} style={{width:'9px',height:'9px',borderRadius:'50%',background:c,opacity:0.7}}/>
+                            ))}
+                            <span className="label-tech" style={{ color:'#333', marginLeft:'6px' }}>main.py</span>
+                        </div>
+                        <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+                            <span className="label-tech" style={{ color:noEnergy?'#FF2D00':'#333' }}>
+                                ⚡ {user?.energy ?? MAX_ENERGY}/{MAX_ENERGY}
+                            </span>
+                            <button
+                                onClick={() => setCode(level.content?.initial_code || '')}
+                                style={{ padding:'4px 12px', background:'transparent', border:'1px solid #1e1e1e', color:'#444', fontFamily:'var(--font-mono)', fontSize:'10px', letterSpacing:'0.1em', cursor:'pointer', textTransform:'uppercase', transition:'all 0.1s' }}
+                                onMouseEnter={e=>{e.currentTarget.style.borderColor='#333';e.currentTarget.style.color='#888';}}
+                                onMouseLeave={e=>{e.currentTarget.style.borderColor='#1e1e1e';e.currentTarget.style.color='#444';}}>
+                                RESET
+                            </button>
+                            <button
+                                onClick={handleRunCode}
+                                disabled={isRunning || noEnergy}
+                                style={{ padding:'5px 20px', background:noEnergy?'#111':'#FF2D00', color:noEnergy?'#333':'#080808', fontFamily:'var(--font-display)', fontSize:'12px', fontWeight:700, letterSpacing:'0.12em', border:'none', cursor:noEnergy||isRunning?'not-allowed':'pointer', textTransform:'uppercase', opacity:isRunning?0.7:1, transition:'opacity 0.1s' }}>
+                                {isRunning ? 'RUNNING...' : '▶ RUN CODE'}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Monaco editor */}
+                    <div style={{ flex:1, minHeight:0 }}>
+                        <Editor
+                            height="100%"
+                            defaultLanguage="python"
+                            value={code}
+                            onChange={(v) => setCode(v || '')}
+                            theme="vs-dark"
+                            options={{
+                                minimap:{enabled:false}, fontSize:14, lineNumbers:'on',
+                                scrollBeyondLastLine:false, padding:{top:12},
+                                fontFamily:'JetBrains Mono, monospace',
+                            }}
+                        />
+                    </div>
+
+                    {/* Console / Test results */}
+                    <div style={{ height:'30vh', display:'flex', flexDirection:'column', borderTop:'1px solid #1a1a1a', background:'#050505', flexShrink:0 }}>
+
+                        {/* Tabs */}
+                        <div style={{ display:'flex', borderBottom:'1px solid #111', background:'#060606', flexShrink:0, overflowX:'auto' }}>
+                            {testResults.length > 0 ? testResults.map((tr,idx) => (
+                                <button key={idx} onClick={() => setActiveTab(idx)}
+                                    style={{
+                                        padding:'6px 16px', fontSize:'10px', fontFamily:'var(--font-mono)',
+                                        letterSpacing:'0.1em', textTransform:'uppercase', border:'none',
+                                        borderRight:'1px solid #111', cursor:'pointer', whiteSpace:'nowrap',
+                                        background: activeTab===idx ? '#080808' : 'transparent',
+                                        color: activeTab===idx ? (tr.passed?'#22c55e':tr.status==='done'?'#FF2D00':'#E8DDD0') : '#333',
+                                        borderTop: activeTab===idx ? `2px solid ${tr.passed?'#22c55e':tr.status==='done'?'#FF2D00':'#444'}` : '2px solid transparent',
+                                    }}>
+                                    {tr.status==='running' && <span style={{color:'#d4a017',marginRight:'4px'}}>●</span>}
+                                    {tr.status==='done' && (tr.passed
+                                        ? <span style={{color:'#22c55e',marginRight:'4px'}}>✓</span>
+                                        : <span style={{color:'#FF2D00',marginRight:'4px'}}>✗</span>)}
+                                    {tr.name}
+                                </button>
+                            )) : (
+                                <div style={{ padding:'6px 16px', fontSize:'10px', fontFamily:'var(--font-mono)', letterSpacing:'0.1em', color:'#222', textTransform:'uppercase' }}>
+                                    CONSOLE OUTPUT
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Output content */}
+                        <div style={{ flex:1, overflowY:'auto', padding:'14px 16px', fontFamily:'var(--font-mono)', fontSize:'12px' }}>
+                            {testResults[activeTab] ? (
+                                <div style={{ display:'flex', flexDirection:'column', gap:'12px' }}>
+                                    <div>
+                                        <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'6px' }}>
+                                            <span className="label-tech">OUTPUT</span>
+                                            {testResults[activeTab].status==='done' && (
+                                                <span className="label-tech" style={{ color:testResults[activeTab].passed?'#22c55e':'#FF2D00' }}>
+                                                    {testResults[activeTab].passed ? '✓ ACCEPTED' : '✗ WRONG ANSWER'}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <pre style={{
+                                            padding:'12px', background:'#080808', margin:0,
+                                            borderLeft:`2px solid ${testResults[activeTab].status==='done'?(testResults[activeTab].passed?'#22c55e':'#FF2D00'):'#1e1e1e'}`,
+                                            color: testResults[activeTab].passed ? '#6ee7b7' : testResults[activeTab].status==='done' ? '#fca5a5' : '#888',
+                                            fontSize:'12px', whiteSpace:'pre-wrap',
+                                        }}>
+                                            {testResults[activeTab].output}
+                                        </pre>
+                                    </div>
+                                    {testResults[activeTab].status==='done' && !testResults[activeTab].passed && (
+                                        <div>
+                                            <span className="label-tech" style={{ color:'#22c55e', display:'block', marginBottom:'6px' }}>EXPECTED</span>
+                                            <pre style={{ padding:'12px', background:'#081508', borderLeft:'2px solid #22c55e', color:'#6ee7b7', fontSize:'12px', whiteSpace:'pre-wrap', margin:0 }}>
+                                                {testResults[activeTab].expected || 'No expected output'}
+                                            </pre>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div style={{ height:'100%', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                                    <span className="label-tech" style={{ color:'#1e1e1e' }}>PRESS ▶ RUN CODE TO EXECUTE</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default Level;
