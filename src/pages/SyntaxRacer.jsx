@@ -176,7 +176,9 @@ export default function SyntaxRacer(){
               <span style={{fontFamily:'var(--font-display)',fontSize:'14px',fontWeight:900,color:'#22c55e',textTransform:'uppercase'}}>{snippet.label}</span>
             </div>
             <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-            <button onClick={()=>navigate(-1)} style={{background:'none',border:'1px solid #1e1e1e',color:'#444',fontFamily:'var(--font-mono)',fontSize:'10px',padding:'4px 12px',cursor:'pointer',letterSpacing:'0.1em'}} onMouseEnter={e=>{e.currentTarget.style.borderColor='#333';e.currentTarget.style.color='#888';}} onMouseLeave={e=>{e.currentTarget.style.borderColor='#1e1e1e';e.currentTarget.style.color='#444';}}>← BACK</button>
+            <button onClick={() => navigate('/mini-games')} style={{ background: 'none', border: '1px solid #1e1e1e', color: '#444', fontFamily: 'var(--font-mono)', fontSize: '10px', padding: '4px 12px', cursor: 'pointer', letterSpacing: '0.1em' }} onMouseEnter={e => { e.currentTarget.style.borderColor = '#333'; e.currentTarget.style.color = '#888'; }} onMouseLeave={e => { e.currentTarget.style.borderColor = '#1e1e1e'; e.currentTarget.style.color = '#444'; }}>
+                ← BACK
+            </button>
             <Link to="/mini-games" className="label-tech" style={{color:'#333',textDecoration:'none'}}>GAMES HUB</Link>
           </div>
           </div>

@@ -72,12 +72,12 @@ const BUGS = [
 const BugHunt = () => {
   const navigate = useNavigate();
   const [levelIdx, setLevelIdx] = useState(0);
-  const [gameState, setGameState] = useState('idle'); // idle, playing, paused, gameover, complete
+  const [gameState, setGameState] = useState('idle');
   const [timeLeft, setTimeLeft] = useState(15);
   const [score, setScore] = useState(0);
   const [flashLine, setFlashLine] = useState(null);
-  const [flashType, setFlashType] = useState(null); // 'correct' | 'incorrect'
-  
+  const [flashType, setFlashType] = useState(null);
+
   const timerRef = useRef(null);
 
   const bug = BUGS[levelIdx];
@@ -134,7 +134,7 @@ const BugHunt = () => {
       setFlashLine(idx);
       setFlashType('incorrect');
       setTimeLeft(t => Math.max(0, t - 3)); // -3 seconds penalty
-      
+
       setTimeout(() => {
         if (gameState === 'playing') {
           setFlashLine(null);
@@ -162,7 +162,7 @@ const BugHunt = () => {
       `}</style>
 
       <div style={{ width: '100%', maxWidth: '700px' }}>
-        
+
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
           <div>
@@ -174,7 +174,7 @@ const BugHunt = () => {
               </span>
             </div>
           </div>
-          <button onClick={() => navigate(-1)} style={{ background: 'none', border: '1px solid #1e1e1e', color: '#444', fontFamily: 'var(--font-mono)', fontSize: '10px', padding: '4px 12px', cursor: 'pointer', letterSpacing: '0.1em' }} onMouseEnter={e => { e.currentTarget.style.borderColor = '#333'; e.currentTarget.style.color = '#888'; }} onMouseLeave={e => { e.currentTarget.style.borderColor = '#1e1e1e'; e.currentTarget.style.color = '#444'; }}>
+          <button onClick={() => navigate('/mini-games')} style={{ background: 'none', border: '1px solid #1e1e1e', color: '#444', fontFamily: 'var(--font-mono)', fontSize: '10px', padding: '4px 12px', cursor: 'pointer', letterSpacing: '0.1em' }} onMouseEnter={e => { e.currentTarget.style.borderColor = '#333'; e.currentTarget.style.color = '#888'; }} onMouseLeave={e => { e.currentTarget.style.borderColor = '#1e1e1e'; e.currentTarget.style.color = '#444'; }}>
             ← BACK
           </button>
         </div>
@@ -226,13 +226,13 @@ const BugHunt = () => {
                   TARGET: 1 FATAL BUG
                 </span>
               </div>
-              
+
               {/* Code */}
               <div style={{ padding: '20px 0' }}>
                 {bug.code.map((line, idx) => {
                   const isFlashed = flashLine === idx;
                   const isEmpty = !line.trim();
-                  
+
                   let bg = 'transparent';
                   let color = '#E8DDD0';
                   if (isFlashed) {
@@ -248,13 +248,13 @@ const BugHunt = () => {
                   const displayLine = (isFlashed && flashType === 'correct') ? bug.correction : line;
 
                   return (
-                    <div 
-                      key={idx} 
+                    <div
+                      key={idx}
                       className={!isEmpty && gameState === 'playing' ? 'bh-line' : ''}
                       onClick={() => handleLineClick(idx)}
-                      style={{ 
-                        display: 'flex', 
-                        padding: '4px 20px', 
+                      style={{
+                        display: 'flex',
+                        padding: '4px 20px',
                         background: bg,
                         color: color,
                         cursor: (!isEmpty && gameState === 'playing') ? 'crosshair' : 'default',

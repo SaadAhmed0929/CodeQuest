@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 // ─── Puzzle Bank ──────────────────────────────────────────────────────────────
 const PUZZLES = [
@@ -187,6 +188,7 @@ function CodeBlock({ block, index, total, onDragStart, onDragEnter, onDragEnd, i
 // ─── Main ─────────────────────────────────────────────────────────────────────
 const SyntaxSorter = () => {
     const { awardLevel } = useAuth();
+    const navigate = useNavigate();
     const [puzzleIdx, setPuzzleIdx] = useState(0);
     const puzzle = PUZZLES[puzzleIdx];
 
@@ -268,7 +270,12 @@ const SyntaxSorter = () => {
                 {/* Header */}
                 <motion.div initial={{ opacity:0, y:-16 }} animate={{ opacity:1, y:0 }}
                     style={{ marginBottom:'40px', paddingBottom:'24px', borderBottom:'1px solid #1a1a1a' }}>
-                    <p className="label-tech" style={{ color:'#FF2D00', marginBottom:'8px' }}>/ MINI GAME</p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <p className="label-tech" style={{ color:'#FF2D00', margin: 0 }}>/ MINI GAME</p>
+                        <button onClick={() => navigate('/mini-games')} style={{ background: 'none', border: '1px solid #1e1e1e', color: '#444', fontFamily: 'var(--font-mono)', fontSize: '10px', padding: '4px 12px', cursor: 'pointer', letterSpacing: '0.1em' }} onMouseEnter={e => { e.currentTarget.style.borderColor = '#333'; e.currentTarget.style.color = '#888'; }} onMouseLeave={e => { e.currentTarget.style.borderColor = '#1e1e1e'; e.currentTarget.style.color = '#444'; }}>
+                            ← BACK
+                        </button>
+                    </div>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end' }}>
                         <div className="headline-xl" style={{ fontSize:'clamp(28px,5vw,52px)', color:'#E8DDD0', lineHeight:1 }}>
                             SYNTAX SORTER
