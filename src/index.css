@@ -147,11 +147,29 @@ code, pre, .font-mono { font-family: var(--font-mono) !important; }
   .level-active  { border-color: var(--color-accent) !important; }
 }
 
-/* Prose overrides */
+/* Prose overrides for lesson content */
 .prose {
-  --tw-prose-body: #b0a898;
+  --tw-prose-body: #d1cbc0;
   --tw-prose-headings: #E8DDD0;
   --tw-prose-code: #ff9d85;
   --tw-prose-pre-bg: #0f0f0f;
   --tw-prose-links: #FF2D00;
+  line-height: 1.7;
+}
+
+.prose p {
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
+}
+
+.prose h1, .prose h2, .prose h3 {
+  margin-top: 2em;
+  margin-bottom: 1em;
+}
+
+.prose code {
+  background: #1a1a1a;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 400;
 }

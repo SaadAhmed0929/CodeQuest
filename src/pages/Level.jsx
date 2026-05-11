@@ -26,6 +26,7 @@ const Level = () => {
     const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
     const [antigravity, setAntigravity] = useState(false);
     const [wwe, setWwe] = useState(false);
+    const [etrigan, setEtrigan] = useState(false);
     const hasFailed = useRef(false);
 
     useEffect(() => {
@@ -102,6 +103,18 @@ const Level = () => {
             return;
         }
 
+        // 🥊 EASTER EGG — ETRIGAN106
+        const c = code.trim();
+        if (c.includes('import etrigan106') || c.includes('from legends import etrigan106')) {
+            // Play boxing bell sound
+            const audio = new Audio('/boxing-bell.mp3'); // Mocking audio path
+            audio.play().catch(()=>{}); // Ignore if browser blocks autoplay
+            
+            setEtrigan(true);
+            awardLevel(150, 100);
+            return;
+        }
+
         if ((user?.energy ?? MAX_ENERGY) === 0) return;
         setIsRunning(true);
         setResult(null);
@@ -133,7 +146,8 @@ const Level = () => {
 
                 try {
                     const trimmedOut = await runCode(compoundCode);
-                    const isAccepted = trimmedOut === tc.expected_output?.trim();
+                    const normalize = (s) => (s || '').replace(/\r/g, '').trim();
+                    const isAccepted = normalize(trimmedOut) === normalize(tc.expected_output);
                     if (!isAccepted) allPassed = false;
                     completed[i] = { ...completed[i], output: trimmedOut, passed: isAccepted, status: 'done' };
                 } catch (err) {
@@ -195,58 +209,91 @@ const Level = () => {
                     recycle={false} numberOfPieces={350} gravity={0.25}
                     colors={['#FF2D00','#d4a017','#E8DDD0','#7cc47a','#e8623a']} />
             )}
-
+            
             {/* 🚀 ANTIGRAVITY EASTER EGG */}
             <AnimatePresence>
                 {antigravity && (
-                    <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }}
-                        style={{ position:'fixed', inset:0, zIndex:999, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', overflow:'hidden', background:'#000', cursor:'pointer' }}
-                        onClick={() => setAntigravity(false)}>
-                        {Array.from({length:40}).map((_,i) => (
-                            <motion.div key={i}
-                                style={{ position:'absolute', borderRadius:'50%', background:'white',
-                                    width:`${Math.random()*3+1}px`, height:`${Math.random()*3+1}px`,
-                                    top:`${Math.random()*100}%`, left:`${Math.random()*100}%` }}
-                                animate={{ opacity:[0.2,1,0.2] }}
-                                transition={{ duration:1.5+Math.random()*2, repeat:Infinity, delay:Math.random()*2 }} />
-                        ))}
-                        <motion.div initial={{y:0}} animate={{y:-window.innerHeight-200}}
-                            transition={{duration:2.5,delay:0.5,ease:'easeIn'}}
-                            style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)' }}>
-                            <div style={{ width:'280px', border:'2px solid #FF2D00' }}>
-                                <div style={{ background:'#111', padding:'8px 12px', display:'flex', gap:'6px', alignItems:'center' }}>
-                                    {['#ff5f57','#febc2e','#28c840'].map((c,i)=><div key={i} style={{width:'9px',height:'9px',borderRadius:'50%',background:c}}/>)}
-                                    <span style={{ fontFamily:'var(--font-mono)', fontSize:'11px', color:'#555', marginLeft:'8px' }}>main.py</span>
+                    <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+                        style={{ position:'fixed', inset:0, zIndex:999, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', overflow:'hidden', background:'#000' }}>
+                        
+                        {/* 🌌 Nebula Glows */}
+                        <div style={{ position:'absolute', top:'-20%', left:'-10%', width:'60%', height:'60%', borderRadius:'50%', background:'radial-gradient(circle, rgba(255,45,0,0.08) 0%, transparent 70%)', filter:'blur(60px)' }} />
+                        <div style={{ position:'absolute', bottom:'-10%', right:'-10%', width:'50%', height:'50%', borderRadius:'50%', background:'radial-gradient(circle, rgba(0,100,255,0.05) 0%, transparent 70%)', filter:'blur(60px)' }} />
+
+                        {/* 🌟 Dynamic Starfield */}
+                        {Array.from({length:80}).map((_,i) => {
+                            const size = Math.random()*2 + 1;
+                            const duration = 2 + Math.random()*4;
+                            return (
+                                <motion.div key={i}
+                                    style={{ position:'absolute', borderRadius:'50%', background:'white',
+                                        width:`${size}px`, height:`${size}px`,
+                                        top:`${Math.random()*100}%`, left:`${Math.random()*100}%` }}
+                                    animate={{ 
+                                        y: [0, window.innerHeight + 100],
+                                        opacity: [0, 1, 0]
+                                    }}
+                                    transition={{ duration, repeat:Infinity, delay:Math.random()*duration, ease:'linear' }} />
+                            );
+                        })}
+
+                        {/* 📦 Floating Code Block */}
+                        <motion.div initial={{ y: 200, opacity:0 }} animate={{ y: -window.innerHeight - 300, opacity:[0,1,1,0] }}
+                            transition={{ duration:4, delay:0.5, ease:'easeIn' }}
+                            style={{ position:'absolute', top:'60%', left:'50%', transform:'translateX(-50%)', zIndex:5 }}>
+                            <div style={{ width:'240px', border:'1px solid rgba(255,45,0,0.3)', background:'rgba(10,10,10,0.8)', backdropFilter:'blur(4px)' }}>
+                                <div style={{ background:'rgba(255,45,0,0.1)', padding:'6px 12px', display:'flex', gap:'5px', alignItems:'center' }}>
+                                    {['#ff5f57','#febc2e','#28c840'].map((c,i)=><div key={i} style={{width:'7px',height:'7px',borderRadius:'50%',background:c}}/>)}
+                                    <span style={{ fontFamily:'var(--font-mono)', fontSize:'10px', color:'#555', marginLeft:'6px' }}>antigravity.py</span>
                                 </div>
-                                <div style={{ background:'#080808', padding:'16px', fontFamily:'var(--font-mono)', fontSize:'13px' }}>
+                                <div style={{ padding:'16px', fontFamily:'var(--font-mono)', fontSize:'12px' }}>
                                     <span style={{color:'#FF2D00'}}>import</span>
                                     <span style={{color:'#E8DDD0'}}> antigravity</span>
                                 </div>
                             </div>
                         </motion.div>
-                        <motion.div initial={{y:100,scale:0}} animate={{y:-window.innerHeight,scale:[0,1.5,1]}}
-                            transition={{duration:3,delay:0.3,ease:'easeIn'}}
-                            style={{ position:'absolute', bottom:'20%', fontSize:'60px' }}>🚀</motion.div>
-                        <motion.div initial={{opacity:0,scale:0.5}} animate={{opacity:1,scale:1}}
-                            transition={{delay:0.2,type:'spring',bounce:0.5}}
-                            style={{ textAlign:'center', padding:'0 32px', position:'relative', zIndex:10 }}>
-                            <div style={{fontSize:'56px',marginBottom:'16px'}}>🪐</div>
-                            <div style={{ fontFamily:'var(--font-display)', fontSize:'32px', fontWeight:700, color:'#FF2D00', textTransform:'uppercase', marginBottom:'8px' }}>You Found It!</div>
-                            <p style={{ fontFamily:'var(--font-mono)', fontSize:'12px', color:'#555', marginBottom:'24px', lineHeight:1.6 }}>
-                                <span style={{color:'#E8DDD0'}}>import antigravity</span> is a real Python Easter egg.<br/>
-                                Try it in a real interpreter — it opens a comic!
-                            </p>
-                            <div style={{ display:'inline-flex', alignItems:'center', gap:'12px', padding:'14px 22px', border:'2px solid #FF2D00', marginBottom:'24px' }}>
-                                <span style={{fontSize:'22px'}}>🏆</span>
-                                <div style={{textAlign:'left'}}>
-                                    <p style={{ fontFamily:'var(--font-display)', fontWeight:700, color:'#E8DDD0', textTransform:'uppercase', fontSize:'14px' }}>Secret Badge Unlocked!</p>
-                                    <p style={{ fontFamily:'var(--font-mono)', fontSize:'10px', color:'#FF2D00', marginTop:'2px' }}>ANTIGRAVITY EXPLORER — +50 XP, +20 COINS</p>
-                                </div>
+
+                        {/* 🚀 Rocket with Trail */}
+                        <motion.div initial={{ y: 100, scale:0 }} animate={{ y: -window.innerHeight - 200, scale:[0, 1.2, 1] }}
+                            transition={{ duration:3.5, delay:0.2, ease:'easeIn' }}
+                            style={{ position:'absolute', bottom:'20%', fontSize:'80px', zIndex:6, filter:'drop-shadow(0 0 20px rgba(255,45,0,0.4))' }}>
+                            🚀
+                            <motion.div animate={{ opacity:[0.4, 0.8, 0.4], scale:[1, 1.2, 1] }} transition={{ duration:0.1, repeat:Infinity }}
+                                style={{ position:'absolute', top:'100%', left:'50%', transform:'translateX(-50%)', width:'20px', height:'40px', background:'linear-gradient(to bottom, #FF2D00, transparent)', filter:'blur(5px)', borderRadius:'50%' }} />
+                        </motion.div>
+
+                        {/* 🪐 Main Card */}
+                        <motion.div initial={{ opacity:0, scale:0.8, y:20 }} animate={{ opacity:1, scale:1, y:0 }}
+                            transition={{ delay:1.2, type:'spring', bounce:0.4 }}
+                            style={{ textAlign:'center', padding:'40px', position:'relative', zIndex:10, background:'rgba(8,8,8,0.7)', backdropFilter:'blur(12px)', border:'1px solid rgba(255,255,255,0.05)', boxShadow:'0 20px 50px rgba(0,0,0,0.5)' }}>
+                            
+                            <motion.div animate={{ y: [-10, 10, -10] }} transition={{ duration:4, repeat:Infinity, ease:'easeInOut' }}
+                                style={{fontSize:'72px', marginBottom:'20px', display:'inline-block'}}>🪐</motion.div>
+                            
+                            <div style={{ fontFamily:'var(--font-display)', fontSize:'36px', fontWeight:900, color:'#FF2D00', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'12px' }}>
+                                Zero Gravity Detected
                             </div>
+                            
+                            <p style={{ fontFamily:'var(--font-mono)', fontSize:'13px', color:'#888', marginBottom:'32px', lineHeight:1.8, maxWidth:'400px' }}>
+                                <span style={{color:'#E8DDD0'}}>import antigravity</span> is a legendary Python Easter egg. <br/>
+                                In a real Python console, it teleports you to a secret XKCD comic about the joy of Python.
+                            </p>
+
+                            <motion.div whileHover={{ scale:1.02 }}
+                                style={{ display:'inline-flex', alignItems:'center', gap:'16px', padding:'16px 28px', background:'rgba(255,45,0,0.1)', border:'1px solid #FF2D00', marginBottom:'32px', textAlign:'left' }}>
+                                <span style={{fontSize:'28px'}}>🏆</span>
+                                <div>
+                                    <p style={{ fontFamily:'var(--font-display)', fontWeight:700, color:'#E8DDD0', textTransform:'uppercase', fontSize:'15px', letterSpacing:'0.05em' }}>Secret Badge: SPACE EXPLORER</p>
+                                    <p style={{ fontFamily:'var(--font-mono)', fontSize:'11px', color:'#FF2D00', marginTop:'2px' }}>+50 XP &nbsp;•&nbsp; +20 COINS</p>
+                                </div>
+                            </motion.div>
+
                             <br />
                             <button onClick={() => setAntigravity(false)}
-                                style={{ padding:'10px 24px', border:'1px solid #333', background:'transparent', color:'#E8DDD0', fontFamily:'var(--font-mono)', fontSize:'10px', letterSpacing:'0.15em', cursor:'pointer', textTransform:'uppercase' }}>
-                                RETURN TO EARTH
+                                style={{ padding:'12px 32px', border:'1px solid #333', background:'transparent', color:'#E8DDD0', fontFamily:'var(--font-mono)', fontSize:'11px', letterSpacing:'0.2em', cursor:'pointer', textTransform:'uppercase', transition:'all 0.2s' }}
+                                onMouseEnter={e => {e.currentTarget.style.borderColor='#FF2D00'; e.currentTarget.style.color='#FF2D00';}}
+                                onMouseLeave={e => {e.currentTarget.style.borderColor='#333'; e.currentTarget.style.color='#E8DDD0';}}>
+                                RETURN TO BASE
                             </button>
                         </motion.div>
                     </motion.div>
@@ -500,6 +547,71 @@ const Level = () => {
                 )}
             </AnimatePresence>
 
+            {/* 🥊 ETRIGAN106 EASTER EGG */}
+            <AnimatePresence>
+                {etrigan && (
+                    <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+                        style={{ position:'fixed', inset:0, zIndex:999, background:'#000', overflow:'hidden', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
+                        
+                        {/* Terminal Boot Sequence */}
+                        <motion.div initial={{ opacity:1 }} animate={{ opacity:0, transitionEnd: { display: 'none' } }} transition={{ delay: 3.8, duration: 0.5 }}
+                            style={{ position:'absolute', inset:0, padding:'40px', fontFamily:'var(--font-mono)', fontSize:'18px', color:'#d4af37', background:'#000', zIndex:1000, display:'flex', flexDirection:'column', gap:'12px' }}>
+                            <motion.div initial={{opacity:0}} animate={{opacity:1}}> {'>'} Executing sequence...</motion.div>
+                            <motion.div initial={{opacity:0}} animate={{opacity:1}} transition={{delay:0.8}}> {'>'} JAB...</motion.div>
+                            <motion.div initial={{opacity:0}} animate={{opacity:1}} transition={{delay:1.4}}> {'>'} CROSS...</motion.div>
+                            <motion.div initial={{opacity:0}} animate={{opacity:1}} transition={{delay:2.0}}> {'>'} SLIPPING EXCEPTIONS...</motion.div>
+                            <motion.div initial={{opacity:0}} animate={{opacity:1}} transition={{delay:2.6}}> {'>'} KNOCKOUT BLOW DELIVERED.</motion.div>
+                            <motion.div initial={{opacity:0}} animate={{opacity:1}} transition={{delay:3.2}}> {'>'} Accessing The Ring...</motion.div>
+                        </motion.div>
+
+                        {/* Main Gym Screen */}
+                        <motion.div initial={{ opacity:0, scale:0.9, y:30 }} animate={{ opacity:1, scale:1, y:0 }} transition={{ delay: 4.0, duration: 0.8, type:'spring', bounce:0.3 }}
+                            style={{ width:'100%', maxWidth:'600px', padding:'40px', background:'#050505', border:'1px solid #222', position:'relative', boxShadow:'0 20px 60px rgba(212,175,55,0.05)' }}>
+                            
+                            {/* Gritty lighting overlay */}
+                            <div style={{ position:'absolute', top:0, left:'50%', transform:'translateX(-50%)', width:'300px', height:'100px', background:'radial-gradient(ellipse at top, rgba(212,175,55,0.15), transparent)', pointerEvents:'none' }} />
+
+                            <div style={{ textAlign:'center', marginBottom:'30px' }}>
+                                <motion.div animate={{ y:[-5,5,-5] }} transition={{ duration:4, repeat:Infinity, ease:'easeInOut' }}
+                                    style={{ fontSize:'64px', marginBottom:'16px' }}>🥊</motion.div>
+                                <div style={{ fontFamily:'var(--font-display)', fontSize:'32px', fontWeight:900, color:'#d4af37', textTransform:'uppercase', letterSpacing:'0.1em' }}>
+                                    The Mythic Architect
+                                </div>
+                                <div style={{ fontFamily:'var(--font-mono)', fontSize:'12px', color:'#555', letterSpacing:'0.2em', marginTop:'4px' }}>ETRIGAN106</div>
+                            </div>
+
+                            <div style={{ borderLeft:'3px solid #d4af37', padding:'24px', background:'#0a0a0a', marginBottom:'30px', position:'relative' }}>
+                                <motion.div initial={{ width:0 }} animate={{ width:'100%' }} transition={{ delay:4.8, duration:3, ease:'linear' }}
+                                    style={{ position:'absolute', top:0, left:0, height:'1px', background:'linear-gradient(90deg, #d4af37, transparent)' }} />
+                                <p style={{ fontFamily:'var(--font-mono)', fontSize:'14px', color:'#d4af37', lineHeight:1.7, fontStyle:'italic' }}>
+                                    "You found the architect. In the ring and in the terminal, the rule is the same: keep your hands up, protect your core, and never stay down on the canvas. Every bug is just a sparring partner making you sharper. Welcome to the deep end."
+                                </p>
+                                <div style={{ textAlign:'right', marginTop:'16px', fontFamily:'var(--font-mono)', fontSize:'11px', color:'#666', textTransform:'uppercase', letterSpacing:'0.1em' }}>— etrigan106</div>
+                            </div>
+
+                            <motion.div whileHover={{ scale:1.02 }}
+                                style={{ display:'flex', alignItems:'center', gap:'16px', padding:'16px 20px', background:'rgba(212,175,55,0.05)', border:'1px solid rgba(212,175,55,0.3)', marginBottom:'30px' }}>
+                                <span style={{fontSize:'32px'}}>👑</span>
+                                <div>
+                                    <p style={{ fontFamily:'var(--font-display)', fontWeight:700, color:'#d4af37', textTransform:'uppercase', fontSize:'15px', letterSpacing:'0.05em' }}>The Champion's Grit Unlocked</p>
+                                    <p style={{ fontFamily:'var(--font-mono)', fontSize:'11px', color:'#888', marginTop:'4px' }}>+150 XP &nbsp;•&nbsp; +100 COINS &nbsp;•&nbsp; GOLDEN STREAK ACTIVE</p>
+                                </div>
+                            </motion.div>
+
+                            <div style={{ textAlign:'center' }}>
+                                <button onClick={() => setEtrigan(false)}
+                                    style={{ padding:'14px 36px', background:'transparent', border:'2px solid #d4af37', color:'#d4af37', fontFamily:'var(--font-display)', fontWeight:800, fontSize:'14px', letterSpacing:'0.15em', cursor:'pointer', textTransform:'uppercase', transition:'all 0.2s' }}
+                                    onMouseEnter={e => {e.currentTarget.style.background='#d4af37'; e.currentTarget.style.color='#000'; e.currentTarget.style.boxShadow='0 0 20px rgba(212,175,55,0.4)';}}
+                                    onMouseLeave={e => {e.currentTarget.style.background='transparent'; e.currentTarget.style.color='#d4af37'; e.currentTarget.style.boxShadow='none';}}>
+                                    STEP OUT OF THE RING
+                                </button>
+                            </div>
+
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <Navbar />
 
 
@@ -508,7 +620,7 @@ const Level = () => {
             <div style={{ flex:1, display:'flex', overflow:'hidden', height:'calc(100vh - 76px)' }}>
 
                 {/* ─────────── LEFT PANEL: Lesson + Task ─────────── */}
-                <div style={{ width:'38%', minWidth:'300px', display:'flex', flexDirection:'column', borderRight:'1px solid #1a1a1a', overflowY:'auto' }}>
+                <div style={{ width:'38%', minWidth:'300px', display:'flex', flexDirection:'column', borderRight:'1px solid #1a1a1a' }}>
 
                     {/* Badge strip */}
                     <div style={{ padding:'10px 24px', borderBottom:'1px solid #1a1a1a', background:'#060606', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
@@ -532,7 +644,7 @@ const Level = () => {
                     </div>
 
                     {/* Concept */}
-                    <div style={{ padding:'20px 24px', flex:1 }}>
+                    <div style={{ padding:'16px 24px', flex:1, overflowY:'auto' }}>
                         <p className="label-tech" style={{ color:'#FF2D00', marginBottom:'14px' }}>/ CONCEPT</p>
                         <div className="prose prose-sm prose-invert max-w-none">
                             <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
